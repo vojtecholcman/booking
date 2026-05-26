@@ -10,408 +10,113 @@
 
 ---
 
+## ⚡ Setup na novém počítači
+
+```bash
+git clone <repo-url> booking
+cd booking
+python -m venv venv
+venv\Scripts\activate        # Windows
+pip install -r requirements.txt
+```
+
+Vytvoř `.env` (není v gitu, musíš vytvořit ručně):
+```
+SECRET_KEY=k7)^(odc_r$iza3!%)j&&yqiu#l5oiosh-59o5!!#(b@u)^9d-
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+DB_NAME=korova_chata
+DB_USER=postgres
+DB_PASSWORD=korova123
+DB_HOST=localhost
+DB_PORT=5432
+SITE_PASSWORD=heslo
+```
+
+Spusť databázi přes Docker:
+```bash
+docker compose up db -d
+```
+
+Spusť migrace:
+```bash
+python manage.py migrate
+```
+
+---
+
+## Aktuální stav (2026-05-26)
+
+| Task | Stav | Commit |
+|---|---|---|
+| Task 1: Project Scaffold | ✅ HOTOVO | `2ffce81`, `c60aa88` |
+| Task 2: Models + Tests | ✅ HOTOVO | `af854a6` |
+| Task 3: Password Middleware | ⏳ TODO | — |
+| Task 4: Views + URLs | ⏳ TODO | — |
+| Task 5: Templates | ⏳ TODO | — |
+| Task 6: Admin | ⏳ TODO | — |
+| Task 7: Deployment | ⏳ TODO | — |
+
+**Poznámky k hotovým taskům:**
+- `docker-compose.yaml` přidán (`be77eb7`) — DB na portu 5432, user `postgres`, password `korova123`, db `korova_chata`
+- `.env` soubor existuje lokálně (není v gitu) — viz Setup sekce výše
+- `settings.py` má CSRF_TRUSTED_ORIGINS pro Cloudflare tunnel a `.env` loading
+- Modely `Room`, `Reservation`, `Guest` jsou implementované s migrací `0001_initial`
+
+---
+
 ## Soubory
 
 ```
 booking/
 ├── manage.py
 ├── requirements.txt
+├── .env                    (není v gitu — viz setup)
 ├── .env.example
 ├── .gitignore
-├── pytest.ini                          (nový)
+├── docker-compose.yaml
 ├── korova_chata/
 │   ├── __init__.py
-│   ├── settings.py                     (nový)
-│   ├── urls.py                         (nový)
+│   ├── settings.py         ✅ hotovo
+│   ├── urls.py             ⏳ zatím placeholder
 │   ├── wsgi.py
-│   └── middleware.py                   (nový)
+│   └── middleware.py       ⏳ zatím passthrough placeholder
 ├── rooms/
 │   ├── __init__.py
-│   ├── models.py                       (nový)
-│   ├── views.py                        (nový)
-│   ├── urls.py                         (nový)
-│   ├── admin.py                        (nový)
+│   ├── models.py           ✅ hotovo
+│   ├── views.py            ⏳ zatím placeholder
+│   ├── urls.py             ⏳ neexistuje
+│   ├── admin.py            ⏳ zatím placeholder
+│   ├── migrations/
+│   │   └── 0001_initial.py ✅ hotovo
 │   ├── templates/
-│   │   └── rooms/
-│   │       ├── base.html               (nový)
-│   │       ├── login.html              (nový)
-│   │       ├── room_list.html          (nový)
-│   │       ├── room_detail.html        (nový)
-│   │       └── confirm.html            (nový)
+│   │   └── rooms/          ⏳ neexistuje
 │   └── tests/
-│       ├── __init__.py
-│       ├── test_models.py              (nový)
-│       ├── test_middleware.py          (nový)
-│       └── test_views.py              (nový)
-└── media/
-    └── rooms/                          (fotky pokojů)
+│       ├── __init__.py     ✅ hotovo
+│       ├── test_models.py  ✅ hotovo
+│       ├── test_middleware.py ⏳ prázdný
+│       └── test_views.py   ⏳ prázdný
+└── media/                  (není v gitu)
 ```
 
 ---
 
-## Task 1: Project Scaffold
+## ~~Task 1: Project Scaffold~~ ✅ HOTOVO
 
-**Files:**
-- Create: `requirements.txt`
-- Create: `.gitignore`
-- Create: `.env.example`
-- Create: `korova_chata/settings.py`
-
-- [ ] **Step 1: Vytvoř virtuální prostředí a nainstaluj balíčky**
-
-```bash
-python -m venv venv
-venv\Scripts\activate        # Windows
-pip install Django==5.1.7 psycopg2-binary==2.9.9 django-jazzmin==3.0.0 Pillow==10.4.0 whitenoise==6.7.0 gunicorn==22.0.0
-```
-
-- [ ] **Step 2: Vytvoř Django projekt a app**
-
-```bash
-django-admin startproject korova_chata .
-python manage.py startapp rooms
-```
-
-- [ ] **Step 3: Vytvoř `requirements.txt`**
-
-```
-Django==5.1.7
-psycopg2-binary==2.9.9
-django-jazzmin==3.0.0
-Pillow==10.4.0
-whitenoise==6.7.0
-gunicorn==22.0.0
-```
-
-- [ ] **Step 4: Vytvoř `.gitignore`**
-
-```
-.env
-venv/
-*.pyc
-__pycache__/
-media/
-staticfiles/
-*.sqlite3
-.superpowers/
-```
-
-- [ ] **Step 5: Vytvoř `.env.example`**
-
-```
-SECRET_KEY=zmena-v-produkci-vygeneruj-nahodny-klic
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-DB_NAME=korova_chata
-DB_USER=postgres
-DB_PASSWORD=
-DB_HOST=localhost
-DB_PORT=5432
-SITE_PASSWORD=heslo
-```
-
-- [ ] **Step 6: Nahraď celé `korova_chata/settings.py`**
-
-```python
-import os
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-only-insecure-key-change-me')
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-
-INSTALLED_APPS = [
-    'jazzmin',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rooms',
-]
-
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'korova_chata.middleware.PasswordProtectMiddleware',
-]
-
-ROOT_URLCONF = 'korova_chata.urls'
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
-WSGI_APPLICATION = 'korova_chata.wsgi.application'
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'korova_chata'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-    }
-}
-
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-
-LANGUAGE_CODE = 'cs'
-TIME_ZONE = 'Europe/Prague'
-USE_I18N = True
-USE_TZ = True
-
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STORAGES = {
-    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
-    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
-}
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-SITE_PASSWORD = os.environ.get('SITE_PASSWORD', 'heslo')
-
-JAZZMIN_SETTINGS = {
-    'site_title': 'Kóřova chata',
-    'site_header': 'Kóřova chata',
-    'site_brand': 'Kóřova chata',
-    'welcome_sign': 'Správa rezervací',
-    'show_ui_builder': False,
-    'icons': {
-        'rooms.room': 'fas fa-bed',
-        'rooms.reservation': 'fas fa-calendar-check',
-        'rooms.guest': 'fas fa-user',
-    },
-}
-```
-
-- [ ] **Step 7: Vytvoř prázdný `korova_chata/middleware.py` (placeholder, implementace v Task 3)**
-
-```python
-class PasswordProtectMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        return self.get_response(request)
-```
-
-- [ ] **Step 8: Vytvoř databázi v PostgreSQL a ověř připojení**
-
-```bash
-# V psql nebo pgAdmin vytvoř databázi:
-createdb korova_chata -U postgres
-
-# Ověř připojení:
-python manage.py check
-```
-
-Očekávej: `System check identified no issues (0 silenced).`
-
-- [ ] **Step 9: Commit**
-
-```bash
-git add requirements.txt .gitignore .env.example manage.py korova_chata/ rooms/
-git commit -m "feat: scaffold Django project korova_chata"
-```
+Commitnuto v `2ffce81` a `c60aa88`. Obsahuje:
+- `requirements.txt`, `.gitignore`, `.env.example`
+- `korova_chata/settings.py` s jazzmin, WhiteNoise, PostgreSQL, SITE_PASSWORD, CSRF_TRUSTED_ORIGINS, `.env` loading
+- `korova_chata/middleware.py` — passthrough placeholder
+- Django projekt a rooms app scaffold
 
 ---
 
-## Task 2: Models + Tests
+## ~~Task 2: Models + Tests~~ ✅ HOTOVO
 
-**Files:**
-- Create: `rooms/tests/__init__.py`
-- Create: `rooms/tests/test_models.py`
-- Modify: `rooms/models.py`
-
-- [ ] **Step 1: Vytvoř adresář pro testy a prázdný `__init__.py`**
-
-```bash
-mkdir rooms\tests
-type nul > rooms\tests\__init__.py
-type nul > rooms\tests\test_middleware.py
-type nul > rooms\tests\test_views.py
-```
-
-- [ ] **Step 2: Napiš failing testy pro modely — `rooms/tests/test_models.py`**
-
-```python
-from django.test import TestCase
-from rooms.models import Room, Reservation, Guest
-
-
-class RoomModelTest(TestCase):
-    def setUp(self):
-        self.room = Room.objects.create(name='Modrý pokoj', max_guests=3)
-
-    def test_str(self):
-        self.assertEqual(str(self.room), 'Modrý pokoj')
-
-    def test_current_guest_count_empty(self):
-        self.assertEqual(self.room.current_guest_count, 0)
-
-    def test_current_guest_count_with_guests(self):
-        res = Reservation.objects.create(room=self.room)
-        Guest.objects.create(reservation=res, name='Alice')
-        Guest.objects.create(reservation=res, name='Bob')
-        self.assertEqual(self.room.current_guest_count, 2)
-
-    def test_current_guest_count_across_multiple_reservations(self):
-        res1 = Reservation.objects.create(room=self.room)
-        Guest.objects.create(reservation=res1, name='Alice')
-        res2 = Reservation.objects.create(room=self.room)
-        Guest.objects.create(reservation=res2, name='Bob')
-        self.assertEqual(self.room.current_guest_count, 2)
-
-    def test_is_not_full_when_below_capacity(self):
-        res = Reservation.objects.create(room=self.room)
-        Guest.objects.create(reservation=res, name='Alice')
-        self.assertFalse(self.room.is_full)
-
-    def test_is_full_when_at_capacity(self):
-        res = Reservation.objects.create(room=self.room)
-        for name in ['Alice', 'Bob', 'Carol']:
-            Guest.objects.create(reservation=res, name=name)
-        self.assertTrue(self.room.is_full)
-
-    def test_remaining_capacity(self):
-        res = Reservation.objects.create(room=self.room)
-        Guest.objects.create(reservation=res, name='Alice')
-        self.assertEqual(self.room.remaining_capacity, 2)
-
-    def test_remaining_capacity_zero_when_full(self):
-        res = Reservation.objects.create(room=self.room)
-        for name in ['Alice', 'Bob', 'Carol']:
-            Guest.objects.create(reservation=res, name=name)
-        self.assertEqual(self.room.remaining_capacity, 0)
-
-
-class GuestModelTest(TestCase):
-    def test_str(self):
-        room = Room.objects.create(name='Test', max_guests=2)
-        res = Reservation.objects.create(room=room)
-        guest = Guest.objects.create(reservation=res, name='Alice')
-        self.assertEqual(str(guest), 'Alice')
-
-
-class ReservationModelTest(TestCase):
-    def test_str_includes_room_and_guests(self):
-        room = Room.objects.create(name='Modrý', max_guests=3)
-        res = Reservation.objects.create(room=room)
-        Guest.objects.create(reservation=res, name='Alice')
-        Guest.objects.create(reservation=res, name='Bob')
-        self.assertIn('Modrý', str(res))
-        self.assertIn('Alice', str(res))
-```
-
-- [ ] **Step 3: Spusť testy — ověř, že failují**
-
-```bash
-python manage.py test rooms.tests.test_models -v 2
-```
-
-Očekávej: chyby typu `ImportError: cannot import name 'Room'` nebo `Table doesn't exist`.
-
-- [ ] **Step 4: Implementuj `rooms/models.py`**
-
-```python
-from django.db import models
-
-
-class Room(models.Model):
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    max_guests = models.PositiveIntegerField()
-    photo = models.ImageField(upload_to='rooms/', blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return self.name
-
-    @property
-    def current_guest_count(self):
-        return sum(r.guests.count() for r in self.reservations.all())
-
-    @property
-    def is_full(self):
-        return self.current_guest_count >= self.max_guests
-
-    @property
-    def remaining_capacity(self):
-        return max(0, self.max_guests - self.current_guest_count)
-
-
-class Reservation(models.Model):
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='reservations')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        names = ', '.join(g.name for g in self.guests.all())
-        return f'{self.room.name}: {names}'
-
-
-class Guest(models.Model):
-    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='guests')
-    name = models.CharField(max_length=200)
-
-    def __str__(self):
-        return self.name
-```
-
-- [ ] **Step 5: Vytvoř a spusť migrace**
-
-```bash
-python manage.py makemigrations rooms
-python manage.py migrate
-```
-
-Očekávej výpis jako: `Creating tables... Running migrations: Applying rooms.0001_initial... OK`
-
-- [ ] **Step 6: Spusť testy — ověř, že prochází**
-
-```bash
-python manage.py test rooms.tests.test_models -v 2
-```
-
-Očekávej: `OK` s počtem testů.
-
-- [ ] **Step 7: Commit**
-
-```bash
-git add rooms/models.py rooms/migrations/ rooms/tests/
-git commit -m "feat: add Room, Reservation, Guest models with tests"
-```
+Commitnuto v `af854a6`. Obsahuje:
+- `rooms/models.py` — Room (name, description, max_guests, photo, is_active, current_guest_count, is_full, remaining_capacity), Reservation (room FK, created_at), Guest (reservation FK, name)
+- `rooms/migrations/0001_initial.py`
+- `rooms/tests/test_models.py` — 10 testů, všechny prochází
 
 ---
 
@@ -627,7 +332,6 @@ class RoomDetailViewTest(AuthHelper, TestCase):
     def test_guest_count_clamped_to_remaining_capacity(self):
         res = Reservation.objects.create(room=self.room)
         Guest.objects.create(reservation=res, name='Alice')
-        # room has 2 remaining, try to add 5
         self.client.post(f'/room/{self.room.pk}/', {'guests': ['B', 'C', 'D', 'E', 'F']})
         new_res = self.room.reservations.exclude(pk=res.pk).first()
         self.assertEqual(new_res.guests.count(), 2)
@@ -661,7 +365,6 @@ Očekávej: ImportError nebo 404 chyby.
 - [ ] **Step 3: Implementuj `rooms/views.py`**
 
 ```python
-import os
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Room, Guest, Reservation
@@ -787,7 +490,7 @@ git commit -m "feat: add views, URL routing and view tests"
 - [ ] **Step 1: Vytvoř adresář pro šablony**
 
 ```bash
-mkdir -p rooms\templates\rooms
+mkdir rooms\templates\rooms
 ```
 
 - [ ] **Step 2: Vytvoř `rooms/templates/rooms/base.html`**
@@ -937,7 +640,6 @@ mkdir -p rooms\templates\rooms
 
 <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;">
 
-  <!-- Levá část: info o pokoji -->
   <div style="flex:2;min-width:280px;">
     {% if room.photo %}
     <img src="{{ room.photo.url }}" alt="{{ room.name }}" style="width:100%;border-radius:8px;max-height:320px;object-fit:cover;margin-bottom:20px;">
@@ -964,7 +666,6 @@ mkdir -p rooms\templates\rooms
     </div>
   </div>
 
-  <!-- Pravá část: formulář -->
   <div style="flex:1;min-width:240px;position:sticky;top:72px;">
     <div style="background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.12);padding:20px;">
       <h2 style="font-size:16px;font-weight:700;margin-bottom:4px;">Vaše rezervace</h2>
@@ -1076,16 +777,16 @@ mkdir -p rooms\templates\rooms
 {% endblock %}
 ```
 
-- [ ] **Step 7: Otevři prohlížeč a ověř vizuálně**
+- [ ] **Step 7: Ověř v prohlížeči**
 
 ```bash
 python manage.py runserver
 ```
 
 Zkontroluj:
-- http://localhost:8000/login/ — zobrazí přihlašovací formulář s brandingem "Kóřova chata"
-- Zadej heslo `heslo` → přesměruje na seznam pokojů (prázdný, žádné pokoje ještě)
-- Admin: http://localhost:8000/admin/ — přihlásí se Django admin přihlášením
+- http://localhost:8000/login/ — přihlašovací formulář, heslo `heslo`
+- http://localhost:8000/ — seznam pokojů (prázdný, žádné pokoje ještě)
+- http://localhost:8000/admin/ — Django admin
 
 - [ ] **Step 8: Commit**
 
@@ -1155,35 +856,19 @@ class ReservationAdmin(admin.ModelAdmin):
 python manage.py createsuperuser
 ```
 
-Zadej uživatelské jméno, email (volitelně) a heslo.
-
 - [ ] **Step 3: Spusť server a ověř admin panel**
 
-```bash
-python manage.py runserver
-```
+Otevři http://localhost:8000/admin/ — přidej testovací pokoj s fotkou a ověř že se zobrazí na http://localhost:8000/
 
-Otevři http://localhost:8000/admin/ a ověř:
-- Přihlášení superuserem funguje
-- V sekci "Rooms" lze přidat pokoj s fotkou
-- V sekci "Reservations" jsou inline hosté
+- [ ] **Step 4: Ověř celý flow**
 
-- [ ] **Step 4: Přidej testovací pokoj přes admin**
+1. Přihlaš se heslem `heslo`
+2. Vyber pokoj → klikni Rezervovat
+3. Přidej 2 jména → odešli
+4. Zkontroluj potvrzovací stránku
+5. Zkontroluj v adminu že rezervace přibyla
 
-Přidej alespoň jeden pokoj s:
-- Název: libovolný
-- Popis: libovolný
-- Max hostů: 3–5
-- Fotka: libovolná (z disku)
-- Is active: zaškrtnuto
-
-- [ ] **Step 5: Ověř veřejnou část**
-
-Otevři http://localhost:8000/ — pokoj by měl být vidět s fotkou a tlačítkem Rezervovat.
-
-Klikni "Rezervovat", zadej 2 jména, odešli — ověř potvrzovací stránku.
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add rooms/admin.py
@@ -1195,46 +880,39 @@ git commit -m "feat: configure Django admin with jazzmin for rooms and reservati
 ## Task 7: Deployment Configuration
 
 **Files:**
-- Create: `.env` (pouze lokálně, nikdy do gitu)
 - Create: `media/.gitkeep`
+- Modify: `korova_chata/settings.py` (přidat .env loading — pokud ještě není)
+
+**Poznámka:** `.env` loading je již v `settings.py` z commitu `c60aa88`. Step 3 níže lze přeskočit pokud `settings.py` začíná blokem s `_env_path`.
 
 - [ ] **Step 1: Vytvoř `media/.gitkeep`**
 
 ```bash
-mkdir media 2>nul
+mkdir media
 type nul > media\.gitkeep
 ```
 
-- [ ] **Step 2: Vytvoř `.env` soubor na serveru**
-
-Soubor `.env` musí existovat na serveru (není v gitu). Příklad:
+- [ ] **Step 2: Vytvoř produkční `.env` na serveru**
 
 ```
-SECRET_KEY=generuj-nahodny-klic-napr-python-c-from-django.core.management.utils-import-get_random_secret_key-print-get_random_secret_key
+SECRET_KEY=<vygeneruj: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())">
 DEBUG=False
 ALLOWED_HOSTS=tvoje-domena.trycloudflare.com,localhost
 DB_NAME=korova_chata
 DB_USER=postgres
-DB_PASSWORD=tvoje-db-heslo
+DB_PASSWORD=korova123
 DB_HOST=localhost
 DB_PORT=5432
 SITE_PASSWORD=tvoje-heslo-pro-kamarady
 ```
 
-Pro vygenerování SECRET_KEY:
-```bash
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-```
+- [ ] **Step 3: Ověř, že `settings.py` načítá `.env`**
 
-- [ ] **Step 3: Nastav načítání `.env` v `korova_chata/settings.py`**
-
-Nahraď první dva řádky souboru (`import os` a `from pathlib import Path`) tímto blokem:
-
+Soubor by měl začínat:
 ```python
 import os
 from pathlib import Path
 
-# Načti .env soubor pokud existuje (pro produkci)
 _env_path = Path(__file__).resolve().parent.parent / '.env'
 if _env_path.exists():
     with open(_env_path) as _f:
@@ -1245,7 +923,7 @@ if _env_path.exists():
                 os.environ.setdefault(_key.strip(), _val.strip())
 ```
 
-Zbytek souboru zůstane beze změny — `BASE_DIR`, `SECRET_KEY` atd. jsou stále níže.
+Pokud ne, přidej tento blok na začátek souboru (před `BASE_DIR`).
 
 - [ ] **Step 4: Sesbírej statické soubory**
 
@@ -1253,63 +931,51 @@ Zbytek souboru zůstane beze změny — `BASE_DIR`, `SECRET_KEY` atd. jsou stál
 python manage.py collectstatic --noinput
 ```
 
-Očekávej: soubory zkopírované do `staticfiles/`.
-
 - [ ] **Step 5: Ověř produkční spuštění**
 
 ```bash
 gunicorn korova_chata.wsgi:application --bind 127.0.0.1:8000 --workers 2
 ```
 
-Otevři http://localhost:8000/ — web musí fungovat s `DEBUG=False`.
+Otevři http://localhost:8000/ — musí fungovat s `DEBUG=False`.
 
-- [ ] **Step 6: Spusť všechny testy naposledy**
+- [ ] **Step 6: Spusť testy naposledy**
 
 ```bash
 python manage.py test rooms -v 2
 ```
 
-Očekávej: `OK`.
-
 - [ ] **Step 7: Commit**
 
 ```bash
-git add media/.gitkeep korova_chata/settings.py
-git commit -m "feat: add deployment config, .env loading, media dir"
+git add media/.gitkeep
+git commit -m "feat: add media dir, finalize deployment config"
 ```
 
 ---
 
-## Cloudflare Tunnel — spuštění
-
-Po nasazení na server:
+## Cloudflare Tunnel
 
 ```bash
-# Nainstaluj cloudflared (https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/)
 cloudflared tunnel --url http://127.0.0.1:8000
 ```
 
-Nebo pro permanentní tunel s vlastní doménou:
-```bash
-cloudflared service install
-```
-
-Doménu z Cloudflare přidej do `.env` jako `ALLOWED_HOSTS`.
+Doménu z výstupu přidej do `.env` jako `ALLOWED_HOSTS=domena.trycloudflare.com,localhost`.
 
 ---
 
 ## Checklist pokrytí specifikace
 
-| Požadavek | Task |
-|---|---|
-| Django + PostgreSQL | Task 1 |
-| Heslem chráněný web | Task 3 |
-| Admin: přidat pokoje, fotky, kapacitu | Task 6 |
-| Admin: smazat/upravit rezervaci | Task 6 |
-| Veřejná část: seznam pokojů | Task 4, 5 |
-| Rezervace: jméno + více hostů | Task 4, 5 |
-| Obsazeno badge | Task 4, 5 |
-| Booking.com vizuální styl | Task 5 |
-| Kóřova chata branding | Task 5 |
-| Cloudflare tunnel kompatibilita | Task 7 |
-| Datum akce pevné (30.–31.5.) | Task 5 (v šablonách) |
+| Požadavek | Task | Stav |
+|---|---|---|
+| Django + PostgreSQL | Task 1 | ✅ |
+| Heslem chráněný web | Task 3 | ⏳ |
+| Admin: pokoje, fotky, kapacita | Task 6 | ⏳ |
+| Admin: smazat/upravit rezervaci | Task 6 | ⏳ |
+| Veřejná část: seznam pokojů | Task 4, 5 | ⏳ |
+| Rezervace: jméno + více hostů | Task 4, 5 | ⏳ |
+| Obsazeno badge | Task 4, 5 | ⏳ |
+| Booking.com vizuální styl | Task 5 | ⏳ |
+| Kóřova chata branding | Task 5 | ⏳ |
+| Cloudflare tunnel | Task 7 | ⏳ |
+| Datum akce pevné (30.–31.5.) | Task 5 | ⏳ |
