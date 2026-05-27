@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-PROJ="/home/vojta/projects/booking"
+PROJ="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJ"
 
 source venv/bin/activate
