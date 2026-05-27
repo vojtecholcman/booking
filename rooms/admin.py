@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Guest, Reservation, Room
+from .models import Guest, Reservation, Room, RoomPhoto
 
 
 class GuestInline(admin.TabularInline):
@@ -9,11 +9,18 @@ class GuestInline(admin.TabularInline):
     extra = 0
 
 
+class RoomPhotoInline(admin.TabularInline):
+    model = RoomPhoto
+    extra = 3
+    fields = ('photo', 'order')
+
+
 @admin.register(Room)
 class RoomAdmin(admin.ModelAdmin):
     list_display = ('name', 'max_guests', 'guest_count', 'remaining', 'is_active', 'photo_preview')
     list_editable = ('is_active',)
     fields = ('name', 'description', 'max_guests', 'photo', 'is_active', 'is_hourly')
+    inlines = [RoomPhotoInline]
 
     @admin.display(description='Hosté')
     def guest_count(self, obj):
