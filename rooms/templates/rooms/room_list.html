@@ -1,0 +1,64 @@
+{% extends "rooms/base.html" %}
+
+{% block title %}Pokoje — Kóřova chata{% endblock %}
+
+{% block body %}
+<div class="hero">
+  <div class="hero-inner">
+    <h2>Kóřova chata 🏕️</h2>
+    <p>Akce 30.–31. května &mdash; vyber si pokoj a rezervuj místo</p>
+  </div>
+</div>
+
+<div class="container">
+  {% if rooms %}
+    <div class="cards">
+      {% for room in rooms %}
+        <div class="card">
+          {% if room.photo %}
+            <img class="card-photo" src="{{ room.photo.url }}" alt="{{ room.name }}">
+          {% else %}
+            <div class="card-photo-placeholder">🛏️</div>
+          {% endif %}
+
+          <div class="card-body">
+            <div class="card-title">{{ room.name }}</div>
+            {% if room.description %}
+              <div class="card-desc">{{ room.description }}</div>
+            {% endif %}
+
+            {% with guests=room.reservations.all %}
+              {% if guests %}
+                <div class="card-guests">
+                  {% for reservation in guests %}
+                    {% for guest in reservation.guests.all %}
+                      <span class="guest-chip">👤 {{ guest.name }}</span>
+                    {% endfor %}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <div class="card-footer">
+              {% if room.is_full %}
+                <span class="capacity-badge capacity-full">Obsazeno ({{ room.current_guest_count }}/{{ room.max_guests }})</span>
+              {% else %}
+                <span class="capacity-badge capacity-ok">{{ room.current_guest_count }}/{{ room.max_guests }} míst</span>
+              {% endif %}
+              <a
+                href="{% url 'room_detail' room.pk %}"
+                class="btn btn-primary btn-sm"
+                {% if room.is_full %}style="background:#aaa;pointer-events:none"{% endif %}
+              >
+                {% if room.is_full %}Obsazeno{% else %}Rezervovat{% endif %}
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p style="text-align:center;color:#666;padding:40px 0">Zatím tu nejsou žádné pokoje.</p>
+  {% endif %}
+</div>
+{% endblock %}

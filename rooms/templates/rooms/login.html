@@ -1,0 +1,31 @@
+{% extends "rooms/base.html" %}
+
+{% block title %}Přihlásit se — Kóřova chata{% endblock %}
+
+{% block body %}
+<div class="login-wrap">
+  <div class="login-box">
+    <h2>Kóřova chata 🏕️</h2>
+    <p class="sub">Zadej heslo pro přístup k rezervacím</p>
+
+    {% if error %}
+      <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+      {% csrf_token %}
+      <label for="password">Heslo</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        class="form-control"
+        placeholder="Heslo pro přátele"
+        autofocus
+        required
+      >
+      <button type="submit" class="btn btn-primary">Vstoupit</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

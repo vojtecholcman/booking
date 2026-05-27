@@ -1,0 +1,26 @@
+{% extends "rooms/base.html" %}
+
+{% block title %}Rezervace potvrzena — Kóřova chata{% endblock %}
+
+{% block content %}
+<div class="confirm-box">
+  <div class="confirm-icon">🎉</div>
+  <h2>Rezervace potvrzena!</h2>
+  <p>Tvoje místo v pokoji <strong>{{ reservation.room.name }}</strong> je zajištěno.</p>
+
+  <div class="confirm-names">
+    <strong>Rezervovaní hosté:</strong>
+    <ul class="guest-list" style="margin-top:8px">
+      {% for guest in reservation.guests.all %}
+        <li>{{ guest.name }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <p style="color:#666;font-size:13px;margin-bottom:20px">
+    Akce proběhne <strong>30.–31. května 2026</strong>. Těšíme se!
+  </p>
+
+  <a href="{% url 'room_list' %}" class="btn btn-primary">Zpět na přehled pokojů</a>
+</div>
+{% endblock %}

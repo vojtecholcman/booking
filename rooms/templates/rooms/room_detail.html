@@ -1,0 +1,149 @@
+{% extends "rooms/base.html" %}
+
+{% block title %}{{ room.name }} — Kóřova chata{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="{% url 'room_list' %}">← Zpět na seznam pokojů</a>
+</div>
+
+<h2 style="font-size:22px;margin-bottom:20px">{{ room.name }}</h2>
+
+<div class="detail-layout">
+  <!-- Left column: photo + popis + obsazení -->
+  <div>
+    {% if room.photo %}
+      <img class="room-photo" src="{{ room.photo.url }}" alt="{{ room.name }}">
+    {% else %}
+      <div class="room-photo-placeholder">🛏️</div>
+    {% endif %}
+
+    {% if room.description %}
+      <p style="margin-top:16px;color:#444;line-height:1.6">{{ room.description }}</p>
+    {% endif %}
+
+    <div style="margin-top:20px">
+      <strong style="font-size:15px">
+        Obsazenost:
+        {% if room.is_full %}
+          <span style="color:#c62828">{{ room.current_guest_count }}/{{ room.max_guests }} &mdash; Obsazeno</span>
+        {% else %}
+          <span style="color:#2e7d32">{{ room.current_guest_count }}/{{ room.max_guests }} míst</span>
+        {% endif %}
+      </strong>
+    </div>
+
+    {% if guests %}
+      <div style="margin-top:16px">
+        <strong>Aktuálně rezervováno:</strong>
+        <ul class="guest-list" style="margin-top:8px">
+          {% for guest in guests %}
+            <li>{{ guest.name }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Right column: rezervační formulář -->
+  <div>
+    {% if room.is_full %}
+      <div class="sidebar-card">
+        <div class="full-badge">🚫 Pokoj je plně obsazen</div>
+        <p style="margin-top:14px;color:#666">Všechna místa jsou zabrána. Zkus jiný pokoj.</p>
+        <a href="{% url 'room_list' %}" class="btn btn-secondary" style="margin-top:12px">Zpět na pokoje</a>
+      </div>
+    {% else %}
+      <div class="form-section">
+        <h3>Rezervovat místo</h3>
+        <p style="color:#666;margin-bottom:16px;font-size:13px">
+          Zbývá <strong>{{ room.remaining_capacity }}</strong> míst.
+          Zadej jméno (nebo jména) hostů.
+        </p>
+
+        {% if error %}
+          <div class="alert alert-error">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" id="reservation-form">
+          {% csrf_token %}
+          <div id="guest-fields">
+            <div class="form-group">
+              <input
+                type="text"
+                name="guest_name"
+                class="form-control"
+                placeholder="Jméno hosta 1"
+                required
+                autofocus
+              >
+            </div>
+          </div>
+
+          <button type="button" class="add-guest-btn" id="add-guest">
+            + Přidat dalšího hosta
+          </button>
+
+          <div class="submit-row">
+            <button type="submit" class="btn btn-primary" style="width:100%;text-align:center;padding:11px;font-size:15px">
+              Rezervovat
+            </button>
+          </div>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+(function () {
+  const MAX = {{ room.remaining_capacity }};
+  const container = document.getElementById('guest-fields');
+  const addBtn = document.getElementById('add-guest');
+  if (!addBtn) return;
+
+  function guestCount() {
+    return container.querySelectorAll('input').length;
+  }
+
+  function updateAddBtn() {
+    addBtn.style.display = guestCount() >= MAX ? 'none' : 'block';
+  }
+
+  function makeField(index) {
+    const div = document.createElement('div');
+    div.className = 'form-group';
+    div.innerHTML =
+      '<input type="text" name="guest_name" class="form-control" placeholder="Jméno hosta ' + index + '" required>' +
+      '<button type="button" class="remove-btn" title="Odebrat">&times;</button>';
+    div.querySelector('.remove-btn').addEventListener('click', function () {
+      div.remove();
+      renumber();
+      updateAddBtn();
+    });
+    return div;
+  }
+
+  function renumber() {
+    container.querySelectorAll('input').forEach(function (input, i) {
+      input.placeholder = 'Jméno hosta ' + (i + 1);
+    });
+    // first field has no remove btn, rest do
+    container.querySelectorAll('.form-group').forEach(function (group, i) {
+      const btn = group.querySelector('.remove-btn');
+      if (i === 0 && btn) btn.remove();
+    });
+  }
+
+  addBtn.addEventListener('click', function () {
+    if (guestCount() >= MAX) return;
+    const field = makeField(guestCount() + 1);
+    container.appendChild(field);
+    field.querySelector('input').focus();
+    updateAddBtn();
+  });
+
+  updateAddBtn();
+})();
+</script>
+{% endblock %}
