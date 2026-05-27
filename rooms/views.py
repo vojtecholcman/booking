@@ -4,6 +4,15 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .models import TIME_SLOTS, Guest, Reservation, Room
 
 
+def _room_photos(room):
+    photos = []
+    if room.photo:
+        photos.append(room.photo.url)
+    for rp in room.photos.all():
+        photos.append(rp.photo.url)
+    return photos
+
+
 def login_view(request):
     error = None
     if request.method == 'POST':
@@ -91,6 +100,7 @@ def room_detail(request, pk):
         'room': room,
         'guests': guests,
         'error': error,
+        'photos': _room_photos(room),
     })
 
 
