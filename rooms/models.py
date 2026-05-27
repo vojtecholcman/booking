@@ -1,3 +1,6 @@
+import io
+import os
+from django.core.files.base import ContentFile
 from django.db import models
 
 
@@ -17,6 +20,18 @@ class Room(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if self.photo:
+            from PIL import Image
+            img = Image.open(self.photo)
+            if img.format == 'HEIF':
+                img = img.convert('RGB')
+                buffer = io.BytesIO()
+                img.save(buffer, format='JPEG', quality=90)
+                name = os.path.splitext(self.photo.name)[0] + '.jpg'
+                self.photo = ContentFile(buffer.getvalue(), name=os.path.basename(name))
+        super().save(*args, **kwargs)
 
     @property
     def current_guest_count(self):
