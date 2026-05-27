@@ -40,10 +40,18 @@
             {% endwith %}
 
             <div class="card-footer">
-              {% if room.is_full %}
-                <span class="capacity-badge capacity-full">Obsazeno ({{ room.current_guest_count }}/{{ room.max_guests }})</span>
+              {% if room.is_hourly %}
+                {% if room.is_full %}
+                  <span class="capacity-badge capacity-full">Všechny sloty obsazeny</span>
+                {% else %}
+                  <span class="capacity-badge capacity-ok">⏱ Hodinové rezervace</span>
+                {% endif %}
               {% else %}
-                <span class="capacity-badge capacity-ok">{{ room.current_guest_count }}/{{ room.max_guests }} míst</span>
+                {% if room.is_full %}
+                  <span class="capacity-badge capacity-full">Obsazeno ({{ room.current_guest_count }}/{{ room.max_guests }})</span>
+                {% else %}
+                  <span class="capacity-badge capacity-ok">{{ room.current_guest_count }}/{{ room.max_guests }} míst</span>
+                {% endif %}
               {% endif %}
               <a
                 href="{% url 'room_detail' room.pk %}"

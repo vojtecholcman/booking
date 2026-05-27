@@ -24,6 +24,13 @@ class Room(models.Model):
 
     @property
     def is_full(self):
+        if self.is_hourly:
+            # plný = každý slot je obsazený na max
+            guests_by_slot = {}
+            for r in self.reservations.all():
+                if r.time_slot:
+                    guests_by_slot[r.time_slot] = guests_by_slot.get(r.time_slot, 0) + r.guests.count()
+            return all(guests_by_slot.get(t, 0) >= self.max_guests for t in TIME_SLOTS)
         return self.current_guest_count >= self.max_guests
 
     @property
