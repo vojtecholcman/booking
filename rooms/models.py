@@ -22,16 +22,23 @@ class Room(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        if self.photo:
-            from PIL import Image
-            img = Image.open(self.photo)
-            if img.format == 'HEIF':
-                img = img.convert('RGB')
-                buffer = io.BytesIO()
-                img.save(buffer, format='JPEG', quality=90)
-                name = os.path.splitext(self.photo.name)[0] + '.jpg'
-                self.photo = ContentFile(buffer.getvalue(), name=os.path.basename(name))
         super().save(*args, **kwargs)
+        if self.photo and 'update_fields' not in kwargs:
+            try:
+                from PIL import Image
+                img = Image.open(self.photo.path)
+                if img.format == 'HEIF':
+                    img = img.convert('RGB')
+                    buf = io.BytesIO()
+                    img.save(buf, format='JPEG', quality=90)
+                    old_path = self.photo.path
+                    new_name = os.path.splitext(os.path.basename(self.photo.name))[0] + '.jpg'
+                    self.photo.save(new_name, ContentFile(buf.getvalue()), save=False)
+                    if old_path != self.photo.path and os.path.exists(old_path):
+                        os.remove(old_path)
+                    type(self).objects.filter(pk=self.pk).update(photo=self.photo.name)
+            except Exception:
+                pass
 
     @property
     def current_guest_count(self):
