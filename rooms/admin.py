@@ -19,7 +19,7 @@ class RoomPhotoInline(admin.TabularInline):
 class RoomAdmin(admin.ModelAdmin):
     list_display = ('name', 'max_guests', 'guest_count', 'remaining', 'is_active', 'photo_preview')
     list_editable = ('is_active',)
-    fields = ('name', 'description', 'max_guests', 'photo', 'is_active', 'is_hourly')
+    fields = ('name', 'description', 'max_guests', 'is_active', 'is_hourly')
     inlines = [RoomPhotoInline]
 
     @admin.display(description='Hosté')
@@ -32,8 +32,9 @@ class RoomAdmin(admin.ModelAdmin):
 
     @admin.display(description='Foto')
     def photo_preview(self, obj):
-        if obj.photo:
-            return format_html('<img src="{}" style="height:40px;border-radius:4px">', obj.photo.url)
+        first = obj.photos.first()
+        if first:
+            return format_html('<img src="{}" style="height:40px;border-radius:4px">', first.photo.url)
         return '—'
 
 

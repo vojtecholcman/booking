@@ -16,11 +16,13 @@
       {% for room in rooms %}
         <div class="col-12 col-sm-6 col-lg-4">
           <div class="card h-100">
-            {% if room.photo %}
-              <img class="card-img-top" src="{{ room.photo.url }}" alt="{{ room.name }}">
-            {% else %}
-              <div class="card-photo-placeholder">🛏️</div>
-            {% endif %}
+            {% with cover=room.photos.first %}
+              {% if cover %}
+                <img class="card-img-top" src="{{ cover.photo.url }}" alt="{{ room.name }}">
+              {% else %}
+                <div class="card-photo-placeholder">🛏️</div>
+              {% endif %}
+            {% endwith %}
 
             <div class="card-body d-flex flex-column gap-2">
               <h5 class="card-title mb-0">{{ room.name }}</h5>

@@ -5,12 +5,7 @@ from .models import TIME_SLOTS, Guest, Reservation, Room
 
 
 def _room_photos(room):
-    photos = []
-    if room.photo:
-        photos.append(room.photo.url)
-    for rp in room.photos.all():
-        photos.append(rp.photo.url)
-    return photos
+    return [rp.photo.url for rp in room.photos.all()]
 
 
 def login_view(request):
