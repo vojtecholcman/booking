@@ -10,6 +10,26 @@ TIME_SLOTS = [
 ]
 
 
+def _convert_heic(field):
+    """Convert HEIC photo to JPEG in-place after the model is already saved."""
+    try:
+        from PIL import Image
+        img = Image.open(field.path)
+        if img.format != 'HEIF':
+            return None
+        img = img.convert('RGB')
+        buf = io.BytesIO()
+        img.save(buf, format='JPEG', quality=90)
+        old_path = field.path
+        new_name = os.path.splitext(os.path.basename(field.name))[0] + '.jpg'
+        field.save(new_name, ContentFile(buf.getvalue()), save=False)
+        if old_path != field.path and os.path.exists(old_path):
+            os.remove(old_path)
+        return field.name
+    except Exception:
+        return None
+
+
 class Room(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -24,21 +44,9 @@ class Room(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.photo and 'update_fields' not in kwargs:
-            try:
-                from PIL import Image
-                img = Image.open(self.photo.path)
-                if img.format == 'HEIF':
-                    img = img.convert('RGB')
-                    buf = io.BytesIO()
-                    img.save(buf, format='JPEG', quality=90)
-                    old_path = self.photo.path
-                    new_name = os.path.splitext(os.path.basename(self.photo.name))[0] + '.jpg'
-                    self.photo.save(new_name, ContentFile(buf.getvalue()), save=False)
-                    if old_path != self.photo.path and os.path.exists(old_path):
-                        os.remove(old_path)
-                    type(self).objects.filter(pk=self.pk).update(photo=self.photo.name)
-            except Exception:
-                pass
+            new_name = _convert_heic(self.photo)
+            if new_name:
+                type(self).objects.filter(pk=self.pk).update(photo=new_name)
 
     @property
     def current_guest_count(self):
@@ -47,7 +55,6 @@ class Room(models.Model):
     @property
     def is_full(self):
         if self.is_hourly:
-            # plný = každý slot je obsazený na max
             guests_by_slot = {}
             for r in self.reservations.all():
                 if r.time_slot:
@@ -58,6 +65,22 @@ class Room(models.Model):
     @property
     def remaining_capacity(self):
         return max(0, self.max_guests - self.current_guest_count)
+
+
+class RoomPhoto(models.Model):
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='photos')
+    photo = models.ImageField(upload_to='rooms/')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'pk']
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.photo and 'update_fields' not in kwargs:
+            new_name = _convert_heic(self.photo)
+            if new_name:
+                type(self).objects.filter(pk=self.pk).update(photo=new_name)
 
 
 class Reservation(models.Model):
