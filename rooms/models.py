@@ -75,6 +75,9 @@ class RoomPhoto(models.Model):
     class Meta:
         ordering = ['order', 'pk']
 
+    def __str__(self):
+        return f"{self.room} – foto {self.order}"
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.photo and 'update_fields' not in kwargs:
