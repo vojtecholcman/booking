@@ -12,8 +12,8 @@ source venv/bin/activate
 pip install -r requirements.txt --quiet
 
 echo "==> restart"
-systemctl restart korova-chata
+sudo systemctl restart korova-chata
 
 echo "==> cekam na start..."
 sleep 2
-systemctl is-active --quiet korova-chata && echo "OK — korova-chata bezi" || { echo "CHYBA — service nesla spustit"; systemctl status korova-chata --no-pager; exit 1; }
+sudo systemctl is-active --quiet korova-chata && echo "OK — korova-chata bezi" || { echo "CHYBA — service nesla spustit"; sudo systemctl status korova-chata --no-pager; exit 1; }
