@@ -95,6 +95,24 @@ class RoomPhoto(models.Model):
                 type(self).objects.filter(pk=self.pk).update(photo=new_name)
 
 
+class MenuPhoto(models.Model):
+    photo = models.ImageField(upload_to='menu/')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'pk']
+
+    def __str__(self):
+        return f"Jídelní lístek – strana {self.order or self.pk}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.photo and 'update_fields' not in kwargs:
+            new_name = _convert_heic(self.photo)
+            if new_name:
+                type(self).objects.filter(pk=self.pk).update(photo=new_name)
+
+
 class Reservation(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='reservations')
     created_at = models.DateTimeField(auto_now_add=True)

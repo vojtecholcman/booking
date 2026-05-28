@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import Guest, Reservation, Room
+from .models import Guest, MenuPhoto, Reservation, Room
 
 
 def _room_photos(room):
@@ -97,6 +97,11 @@ def room_detail(request, pk):
         'error': error,
         'photos': _room_photos(room),
     })
+
+
+def menu(request):
+    photos = MenuPhoto.objects.all()
+    return render(request, 'rooms/menu.html', {'photos': photos})
 
 
 def confirm(request, pk):

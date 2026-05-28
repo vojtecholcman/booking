@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Guest, Reservation, Room, RoomPhoto
+from .models import Guest, MenuPhoto, Reservation, Room, RoomPhoto
 
 
 class GuestInline(admin.TabularInline):
@@ -37,6 +37,12 @@ class RoomAdmin(admin.ModelAdmin):
         if first:
             return format_html('<img src="{}" style="height:40px;border-radius:4px">', first.photo.url)
         return '—'
+
+
+@admin.register(MenuPhoto)
+class MenuPhotoAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'order')
+    fields = ('photo', 'order')
 
 
 @admin.register(Reservation)
