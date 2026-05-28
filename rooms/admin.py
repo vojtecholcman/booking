@@ -11,7 +11,8 @@ class GuestInline(admin.TabularInline):
 
 class RoomPhotoInline(admin.TabularInline):
     model = RoomPhoto
-    extra = 3
+    extra = 1
+    max_num = 50
     fields = ('photo', 'order')
 
 
