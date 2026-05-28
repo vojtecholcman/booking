@@ -11,6 +11,39 @@
 </nav>
 
 <h2 class="fw-bold mb-1">{{ room.name }}</h2>
+
+{% if photos %}
+  {% if photos|length == 1 %}
+    <img class="room-photo mb-3" src="{{ photos.0 }}" alt="{{ room.name }}">
+  {% else %}
+    <div id="roomCarousel" class="carousel slide mb-3" data-bs-ride="false">
+      <div class="carousel-indicators">
+        {% for photo in photos %}
+          <button type="button" data-bs-target="#roomCarousel"
+            data-bs-slide-to="{{ forloop.counter0 }}"
+            {% if forloop.first %}class="active" aria-current="true"{% endif %}
+            aria-label="Foto {{ forloop.counter }}"></button>
+        {% endfor %}
+      </div>
+      <div class="carousel-inner">
+        {% for photo in photos %}
+          <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <img class="d-block w-100 room-photo" src="{{ photo }}" alt="{{ room.name }} – foto {{ forloop.counter }}">
+          </div>
+        {% endfor %}
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#roomCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Předchozí</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#roomCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Další</span>
+      </button>
+    </div>
+  {% endif %}
+{% endif %}
+
 {% if room.description %}
   <p class="text-muted mb-2">{{ room.description }}</p>
 {% endif %}

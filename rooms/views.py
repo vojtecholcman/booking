@@ -76,6 +76,7 @@ def room_detail(request, pk):
             'room': room,
             'slots': slots,
             'error': error,
+            'photos': _room_photos(room),
         })
 
     if request.method == 'POST':
