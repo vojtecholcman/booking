@@ -16,9 +16,37 @@
       {% for room in rooms %}
         <div class="col-12 col-sm-6 col-lg-4">
           <div class="card h-100">
-            {% with cover=room.photos.first %}
-              {% if cover %}
-                <img class="card-img-top" src="{{ cover.photo.url }}" alt="{{ room.name }}">
+            {% with photos=room.photos.all %}
+              {% if photos %}
+                {% if photos|length == 1 %}
+                  <img class="card-img-top" src="{{ photos.0.photo.url }}" alt="{{ room.name }}">
+                {% else %}
+                  <div id="carousel-{{ room.pk }}" class="carousel slide" data-bs-ride="false">
+                    <div class="carousel-indicators">
+                      {% for photo in photos %}
+                        <button type="button" data-bs-target="#carousel-{{ room.pk }}"
+                          data-bs-slide-to="{{ forloop.counter0 }}"
+                          {% if forloop.first %}class="active" aria-current="true"{% endif %}
+                          aria-label="Foto {{ forloop.counter }}"></button>
+                      {% endfor %}
+                    </div>
+                    <div class="carousel-inner">
+                      {% for photo in photos %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                          <img class="card-img-top" src="{{ photo.photo.url }}" alt="{{ room.name }} – foto {{ forloop.counter }}">
+                        </div>
+                      {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ room.pk }}" data-bs-slide="prev">
+                      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                      <span class="visually-hidden">Předchozí</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ room.pk }}" data-bs-slide="next">
+                      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                      <span class="visually-hidden">Další</span>
+                    </button>
+                  </div>
+                {% endif %}
               {% else %}
                 <div class="card-photo-placeholder">🛏️</div>
               {% endif %}
@@ -59,8 +87,8 @@
 
                 <a
                   href="{% url 'room_detail' room.pk %}"
-                  class="btn btn-primary btn-sm {% if room.is_full %}disabled{% endif %}"
-                >{% if room.is_full %}Obsazeno{% else %}Rezervovat{% endif %}</a>
+                  class="btn btn-sm {% if room.is_full %}btn-outline-secondary{% else %}btn-primary{% endif %}"
+                >{% if room.is_full %}Zobrazit{% else %}Rezervovat{% endif %}</a>
               </div>
             </div>
           </div>

@@ -24,7 +24,7 @@ def logout_view(request):
 
 
 def room_list(request):
-    rooms = Room.objects.filter(is_active=True).prefetch_related('reservations__guests')
+    rooms = Room.objects.filter(is_active=True).prefetch_related('reservations__guests', 'photos')
     return render(request, 'rooms/room_list.html', {'rooms': rooms})
 
 
