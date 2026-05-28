@@ -20,7 +20,7 @@ class RoomPhotoInline(admin.TabularInline):
 class RoomAdmin(admin.ModelAdmin):
     list_display = ('name', 'max_guests', 'guest_count', 'remaining', 'is_active', 'photo_preview')
     list_editable = ('is_active',)
-    fields = ('name', 'description', 'max_guests', 'is_active', 'is_hourly')
+    fields = ('name', 'description', 'max_guests', 'is_active', 'is_hourly', 'slot_from', 'slot_to')
     inlines = [RoomPhotoInline]
 
     @admin.display(description='Hosté')

@@ -4,10 +4,7 @@ from django.core.files.base import ContentFile
 from django.db import models
 
 
-TIME_SLOTS = [
-    "18:00", "19:00", "20:00", "21:00", "22:00", "23:00",
-    "00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
-]
+HOUR_CHOICES = [(i, f"{i:02d}:00") for i in range(24)]
 
 
 def _convert_heic(field):
@@ -37,6 +34,8 @@ class Room(models.Model):
     photo = models.ImageField(upload_to='rooms/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_hourly = models.BooleanField(default=False, verbose_name='Hodinové rezervace')
+    slot_from = models.PositiveSmallIntegerField(default=18, choices=HOUR_CHOICES, verbose_name='Rezervace od')
+    slot_to = models.PositiveSmallIntegerField(default=4, choices=HOUR_CHOICES, verbose_name='Rezervace do')
 
     def __str__(self):
         return self.name
@@ -47,6 +46,16 @@ class Room(models.Model):
             new_name = _convert_heic(self.photo)
             if new_name:
                 type(self).objects.filter(pk=self.pk).update(photo=new_name)
+
+    def get_time_slots(self):
+        slots = []
+        h = self.slot_from
+        while True:
+            slots.append(f"{h:02d}:00")
+            if h == self.slot_to:
+                break
+            h = (h + 1) % 24
+        return slots
 
     @property
     def current_guest_count(self):
@@ -59,7 +68,7 @@ class Room(models.Model):
             for r in self.reservations.all():
                 if r.time_slot:
                     guests_by_slot[r.time_slot] = guests_by_slot.get(r.time_slot, 0) + r.guests.count()
-            return all(guests_by_slot.get(t, 0) >= self.max_guests for t in TIME_SLOTS)
+            return all(guests_by_slot.get(t, 0) >= self.max_guests for t in self.get_time_slots())
         return self.current_guest_count >= self.max_guests
 
     @property

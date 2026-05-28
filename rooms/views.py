@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import TIME_SLOTS, Guest, Reservation, Room
+from .models import Guest, Reservation, Room
 
 
 def _room_photos(room):
@@ -39,7 +39,7 @@ def room_detail(request, pk):
             guests_by_slot.setdefault(r.time_slot, []).extend(r.guests.all())
 
         slots = []
-        for t in TIME_SLOTS:
+        for t in room.get_time_slots():
             slot_guests = guests_by_slot.get(t, [])
             count = len(slot_guests)
             slots.append({
