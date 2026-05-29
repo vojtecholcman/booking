@@ -6,8 +6,6 @@ services:
       POSTGRES_DB: korova_chata
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: korova123
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -16,5 +14,21 @@ services:
       timeout: 5s
       retries: 5
 
+  web:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+    ports:
+      - "8000:8000"
+    volumes:
+      - media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   pgdata:
+  media:
