@@ -2,10 +2,14 @@ services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: korova_chata
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: korova123
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

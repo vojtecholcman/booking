@@ -1,0 +1,192 @@
+{% extends "rooms/base.html" %}
+
+{% block title %}{{ room.name }} — Kóřova chata{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'room_list' %}" class="text-decoration-none">Pokoje</a></li>
+    <li class="breadcrumb-item active">{{ room.name }}</li>
+  </ol>
+</nav>
+
+<h2 class="fw-bold mb-1">{{ room.name }}</h2>
+
+{% if photos %}
+  {% if photos|length == 1 %}
+    <img class="room-photo mb-3" src="{{ photos.0 }}" alt="{{ room.name }}">
+  {% else %}
+    <div id="roomCarousel" class="carousel slide mb-3" data-bs-ride="false">
+      <div class="carousel-indicators">
+        {% for photo in photos %}
+          <button type="button" data-bs-target="#roomCarousel"
+            data-bs-slide-to="{{ forloop.counter0 }}"
+            {% if forloop.first %}class="active" aria-current="true"{% endif %}
+            aria-label="Foto {{ forloop.counter }}"></button>
+        {% endfor %}
+      </div>
+      <div class="carousel-inner">
+        {% for photo in photos %}
+          <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <img class="d-block w-100 room-photo" src="{{ photo }}" alt="{{ room.name }} – foto {{ forloop.counter }}">
+          </div>
+        {% endfor %}
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#roomCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Předchozí</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#roomCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Další</span>
+      </button>
+    </div>
+  {% endif %}
+{% endif %}
+
+{% if room.description %}
+  <p class="text-muted mb-2">{{ room.description }}</p>
+{% endif %}
+<p class="text-muted small mb-4">Kapacita slotu: <strong>{{ room.max_guests }} os.</strong> — rezervuj si hodinu, vejde se víc lidí najednou.</p>
+
+{% if error %}
+  <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead style="background:#003580;color:#fff">
+        <tr>
+          <th class="ps-3" style="width:80px">Čas</th>
+          <th>Kdo tam bude</th>
+          <th class="text-center" style="width:110px">Obsazenost</th>
+          <th style="width:130px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for slot in slots %}
+          <tr class="{% if slot.full %}table-light{% endif %}">
+            <td class="ps-3 fw-bold {% if slot.full %}text-muted{% endif %}">{{ slot.time }}</td>
+            <td>
+              {% if slot.guests %}
+                <div class="d-flex flex-wrap gap-1">
+                  {% for guest in slot.guests %}
+                    <span class="guest-chip">👤 {{ guest.name }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <span class="text-muted small">volno</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              {% if slot.full %}
+                <span class="badge bg-danger">{{ slot.count }}/{{ room.max_guests }}</span>
+              {% else %}
+                <span class="badge" style="background:#e8f5e9;color:#2e7d32">{{ slot.count }}/{{ room.max_guests }}</span>
+              {% endif %}
+            </td>
+            <td class="text-end pe-3">
+              {% if slot.full %}
+                <span class="text-muted small">plno</span>
+              {% else %}
+                <button
+                  class="btn btn-primary btn-sm"
+                  data-bs-toggle="modal"
+                  data-bs-target="#reserveModal"
+                  data-time="{{ slot.time }}"
+                  data-remaining="{{ slot.remaining }}"
+                >+ Přidat se</button>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Bootstrap modal -->
+<div class="modal fade" id="reserveModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title">Rezervovat slot <span id="modal-time" class="text-primary"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" id="slot-form">
+        {% csrf_token %}
+        <input type="hidden" name="time_slot" id="modal-slot-input">
+        <div class="modal-body">
+          <p id="modal-cap" class="text-muted small mb-3"></p>
+          <div id="modal-guest-fields">
+            <div class="d-flex gap-2 mb-2">
+              <input type="text" name="guest_name" class="form-control" placeholder="Jméno hosta 1" required>
+            </div>
+          </div>
+          <button type="button" class="add-guest-btn" id="modal-add-btn">+ Přidat dalšího hosta</button>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Zrušit</button>
+          <button type="submit" class="btn btn-primary">Potvrdit rezervaci</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const modal = document.getElementById('reserveModal');
+  const container = document.getElementById('modal-guest-fields');
+  const addBtn = document.getElementById('modal-add-btn');
+  let maxGuests = 1;
+
+  function guestCount() { return container.querySelectorAll('input').length; }
+  function updateAddBtn() { addBtn.style.display = guestCount() >= maxGuests ? 'none' : 'block'; }
+
+  function makeField(index) {
+    const div = document.createElement('div');
+    div.className = 'd-flex gap-2 mb-2';
+    div.innerHTML =
+      '<input type="text" name="guest_name" class="form-control" placeholder="Jméno hosta ' + index + '" required>' +
+      '<button type="button" class="remove-btn">&times;</button>';
+    div.querySelector('.remove-btn').addEventListener('click', function () {
+      div.remove(); renumber(); updateAddBtn();
+    });
+    return div;
+  }
+
+  function renumber() {
+    container.querySelectorAll('input').forEach(function (input, i) {
+      input.placeholder = 'Jméno hosta ' + (i + 1);
+    });
+  }
+
+  addBtn.addEventListener('click', function () {
+    if (guestCount() >= maxGuests) return;
+    const field = makeField(guestCount() + 1);
+    container.appendChild(field);
+    field.querySelector('input').focus();
+    updateAddBtn();
+  });
+
+  modal.addEventListener('show.bs.modal', function (e) {
+    const btn = e.relatedTarget;
+    const time = btn.dataset.time;
+    maxGuests = parseInt(btn.dataset.remaining);
+
+    document.getElementById('modal-time').textContent = time;
+    document.getElementById('modal-slot-input').value = time;
+    document.getElementById('modal-cap').textContent = 'Zbývá ' + maxGuests + ' volných míst v tomto slotu.';
+
+    container.innerHTML = '<div class="d-flex gap-2 mb-2"><input type="text" name="guest_name" class="form-control" placeholder="Jméno hosta 1" required></div>';
+    updateAddBtn();
+  });
+
+  modal.addEventListener('shown.bs.modal', function () {
+    container.querySelector('input').focus();
+  });
+})();
+</script>
+{% endblock %}

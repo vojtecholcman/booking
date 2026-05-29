@@ -1,0 +1,102 @@
+{% extends "rooms/base.html" %}
+
+{% block title %}Pokoje — Kóřova chata{% endblock %}
+
+{% block body %}
+<div class="hero mb-4">
+  <div class="container">
+    <h2 class="fw-bold mb-1">Kóřova chata 🏕️</h2>
+    <p class="mb-0 opacity-75">Akce 30.–31. května &mdash; vyber si pokoj a rezervuj místo</p>
+  </div>
+</div>
+
+<div class="container">
+  {% if rooms %}
+    <div class="row g-3">
+      {% for room in rooms %}
+        <div class="col-12 col-sm-6 col-lg-4">
+          <div class="card h-100">
+            {% with photos=room.photos.all %}
+              {% if photos %}
+                {% if photos|length == 1 %}
+                  <img class="card-img-top" src="{{ photos.0.photo.url }}" alt="{{ room.name }}">
+                {% else %}
+                  <div id="carousel-{{ room.pk }}" class="carousel slide" data-bs-ride="false">
+                    <div class="carousel-indicators">
+                      {% for photo in photos %}
+                        <button type="button" data-bs-target="#carousel-{{ room.pk }}"
+                          data-bs-slide-to="{{ forloop.counter0 }}"
+                          {% if forloop.first %}class="active" aria-current="true"{% endif %}
+                          aria-label="Foto {{ forloop.counter }}"></button>
+                      {% endfor %}
+                    </div>
+                    <div class="carousel-inner">
+                      {% for photo in photos %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                          <img class="card-img-top" src="{{ photo.photo.url }}" alt="{{ room.name }} – foto {{ forloop.counter }}">
+                        </div>
+                      {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ room.pk }}" data-bs-slide="prev">
+                      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                      <span class="visually-hidden">Předchozí</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ room.pk }}" data-bs-slide="next">
+                      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                      <span class="visually-hidden">Další</span>
+                    </button>
+                  </div>
+                {% endif %}
+              {% else %}
+                <div class="card-photo-placeholder">🛏️</div>
+              {% endif %}
+            {% endwith %}
+
+            <div class="card-body d-flex flex-column gap-2">
+              <h5 class="card-title mb-0">{{ room.name }}</h5>
+              {% if room.description %}
+                <p class="card-text text-muted small flex-grow-1">{{ room.description }}</p>
+              {% endif %}
+
+              {% with reservations=room.reservations.all %}
+                {% if reservations %}
+                  <div class="d-flex flex-wrap gap-1">
+                    {% for reservation in reservations %}
+                      {% for guest in reservation.guests.all %}
+                        <span class="guest-chip">👤 {{ guest.name }}</span>
+                      {% endfor %}
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              {% endwith %}
+
+              <div class="d-flex align-items-center justify-content-between mt-auto pt-2">
+                {% if room.is_hourly %}
+                  {% if room.is_full %}
+                    <span class="badge bg-danger">Všechny sloty obsazeny</span>
+                  {% else %}
+                    <span class="badge" style="background:#e8f5e9;color:#2e7d32">⏱ Hodinové rezervace</span>
+                  {% endif %}
+                {% else %}
+                  {% if room.is_full %}
+                    <span class="badge bg-danger">Obsazeno {{ room.current_guest_count }}/{{ room.max_guests }}</span>
+                  {% else %}
+                    <span class="badge" style="background:#e8f5e9;color:#2e7d32">{{ room.current_guest_count }}/{{ room.max_guests }} míst</span>
+                  {% endif %}
+                {% endif %}
+
+                <a
+                  href="{% url 'room_detail' room.pk %}"
+                  class="btn btn-sm {% if room.is_full %}btn-outline-secondary{% else %}btn-primary{% endif %}"
+                >{% if room.is_full %}Zobrazit{% else %}Rezervovat{% endif %}</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-center text-muted py-5">Zatím tu nejsou žádné pokoje.</p>
+  {% endif %}
+</div>
+{% endblock %}

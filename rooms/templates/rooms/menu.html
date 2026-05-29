@@ -1,0 +1,26 @@
+{% extends "rooms/base.html" %}
+
+{% block title %}Jídelní lístek — Kóřova chata{% endblock %}
+
+{% block body %}
+<div class="hero mb-4">
+  <div class="container">
+    <h2 class="fw-bold mb-1">Jídelní lístek 🍽️</h2>
+    <p class="mb-0 opacity-75">Co se bude jíst na Kóřově chatě</p>
+  </div>
+</div>
+
+<div class="container">
+  {% if photos %}
+    <div class="row justify-content-center g-3">
+      {% for photo in photos %}
+        <div class="col-12 col-md-10 col-lg-8">
+          <img src="{{ photo.photo.url }}" alt="Jídelní lístek" class="img-fluid rounded shadow-sm w-100">
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-center text-muted py-5">Jídelní lístek ještě není k dispozici.</p>
+  {% endif %}
+</div>
+{% endblock %}

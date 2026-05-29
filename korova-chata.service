@@ -1,0 +1,16 @@
+[Unit]
+Description=Kóřova chata – Django app
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=vojta
+WorkingDirectory=/home/vojta/projects/booking
+ExecStartPre=/usr/bin/docker compose up -d db
+ExecStart=/home/vojta/projects/booking/start.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

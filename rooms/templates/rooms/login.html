@@ -1,0 +1,31 @@
+{% extends "rooms/base.html" %}
+
+{% block title %}Přihlásit se — Kóřova chata{% endblock %}
+
+{% block body %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center p-3" style="background:#f2f2f2">
+  <div class="card shadow p-4" style="width:100%;max-width:380px">
+    <h2 class="mb-1 fw-bold">Kóřova chata 🏕️</h2>
+    <p class="text-muted mb-4" style="font-size:.9rem">Zadej heslo pro přístup k rezervacím</p>
+
+    {% if error %}
+      <div class="alert alert-danger py-2">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+      {% csrf_token %}
+      <label class="form-label fw-semibold" for="password">Heslo</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        class="form-control mb-3"
+        placeholder="Heslo"
+        autofocus
+        required
+      >
+      <button type="submit" class="btn btn-primary w-100 py-2">Vstoupit</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

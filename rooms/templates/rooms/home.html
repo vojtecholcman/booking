@@ -1,0 +1,38 @@
+{% extends "rooms/base.html" %}
+
+{% block title %}Kóřova chata{% endblock %}
+
+{% block body %}
+<div class="hero mb-4">
+  <div class="container">
+    <h2 class="fw-bold mb-1">Kóřova chata 🏕️</h2>
+    <p class="mb-0 opacity-75">Akce 30.–31. května</p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row g-3">
+
+    <div class="col-12 col-sm-6">
+      <a href="{% url 'room_list' %}" class="text-decoration-none">
+        <div class="home-card">
+          <div class="home-card-icon">🛏️</div>
+          <div class="home-card-title">Pokoje</div>
+          <div class="home-card-sub">Vyber si pokoj a rezervuj místo</div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-12 col-sm-6">
+      <a href="{% url 'menu' %}" class="text-decoration-none">
+        <div class="home-card">
+          <div class="home-card-icon">🍽️</div>
+          <div class="home-card-title">Jídelní lístek</div>
+          <div class="home-card-sub">Co se bude jíst a pít</div>
+        </div>
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
